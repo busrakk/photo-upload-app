@@ -34,11 +34,21 @@ app.get('/', async (req, res) => {
     res.render('index', {
       photos,
     });
-    console.log(photos);
+    // console.log(photos);
   } catch (err) {
     console.error(err);
   }
 });
+
+// photo detail page
+app.get('/photos/:id', async(req, res) => {
+  // console.log(req.params.id);
+  const photo = await Photo.findById(req.params.id);
+  res.render('photo', {
+    photo,
+  });
+});
+
 app.get('/about', (req, res) => {
   res.render('about');
 });
