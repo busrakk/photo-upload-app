@@ -27,8 +27,17 @@ app.use(express.urlencoded({ extended: true })); // url'deki datayı okuma
 app.use(express.json()); // url'deki datayı json çevirme
 
 // ROUTE
-app.get('/', (req, res) => {
-  res.render('index');
+app.get('/', async (req, res) => {
+  // const photos = await Photo.find({}) // veritabanındaki verileri gösterme
+  try {
+    const photos = await Photo.find({});
+    res.render('index', {
+      photos,
+    });
+    console.log(photos);
+  } catch (err) {
+    console.error(err);
+  }
 });
 app.get('/about', (req, res) => {
   res.render('about');
@@ -37,8 +46,8 @@ app.get('/add', (req, res) => {
   res.render('add');
 });
 
-// create a photo 
-app.post('/photos', async(req, res) => {
+// create a photo
+app.post('/photos', async (req, res) => {
   // console.log(req.body);
   await Photo.create(req.body);
   res.redirect('/');
