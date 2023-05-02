@@ -1,12 +1,21 @@
 const Photo = require('../models/Photo');
 const fs = require('fs');
 
+// req.query özelliği ile ilgili yönlendirmede bulunan sorgu parametrelerini yakalamayı sağlar.
+
 exports.getAllPhotos = async (req, res) => {
-  // const photos = await Photo.find({}) // veritabanındaki verileri gösterme
   try {
-    const photos = await Photo.find({}).sort('-dateCreated');
+    const page = req.query.page || 1; // başlangıç sayfası
+    const photoPerPage = 3; // her sayfada gösterilecek resim sayısı
+    const totalPhotos = await Photo.find().countDocuments(); // veritabanındaki tüm fotoğraflar
+    const photos = await Photo.find({}) // her sayfada göstermek istediğimiz fotoğraf bilgisi
+      .sort('-dateCreated') // sıralama
+      .skip((page - 1) * photoPerPage) // her sayfanın kendi fotoğrafları
+      .limit(photoPerPage); // her sayfadaki fotoğrafı sınırlama
     res.render('index', {
-      photos,
+      photos: photos,
+      current: page,
+      pages: Math.ceil(totalPhotos / photoPerPage), // toplam sayfa sayısı
     });
     // console.log(photos);
   } catch (err) {
