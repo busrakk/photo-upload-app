@@ -1,7 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const fileUpload = require('express-fileupload');
 const ejs = require('ejs');
 const path = require('path');
+const fs = require('fs');
 
 // model
 const Photo = require('./models/Photo');
@@ -25,12 +27,13 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true })); // url'deki datayı okuma
 app.use(express.json()); // url'deki datayı json çevirme
+app.use(fileUpload()); // express-fileupload
 
 // ROUTE
 app.get('/', async (req, res) => {
   // const photos = await Photo.find({}) // veritabanındaki verileri gösterme
   try {
-    const photos = await Photo.find({});
+    const photos = await Photo.find({}).sort('-dateCreated');
     res.render('index', {
       photos,
     });
@@ -41,7 +44,7 @@ app.get('/', async (req, res) => {
 });
 
 // photo detail page
-app.get('/photos/:id', async(req, res) => {
+app.get('/photos/:id', async (req, res) => {
   // console.log(req.params.id);
   const photo = await Photo.findById(req.params.id);
   res.render('photo', {
@@ -59,7 +62,25 @@ app.get('/add', (req, res) => {
 // create a photo
 app.post('/photos', async (req, res) => {
   // console.log(req.body);
-  await Photo.create(req.body);
+  // console.log(req.files.image)
+
+  const uploadDir = 'public/uploads';
+  // klasörün olup olmadığını kontrol etme
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir); // klasör yoksa oluştur
+  }
+
+  let uploadImage = req.files.image; // görsel bilgileri
+  let uploadPath = __dirname + '/public/uploads/' + uploadImage.name; // görsellerin kaydedileceği yer
+
+  // Yakaladığımız dosyayı .mv metodu ile yukarda belirlediğimiz path'a taşıma
+  uploadImage.mv(uploadPath, async (err) => {
+    if (err) console.log(err);
+    await Photo.create({
+      ...req.body,
+      image: '/uploads/' + uploadImage.name,
+    });
+  });
   res.redirect('/');
 });
 
