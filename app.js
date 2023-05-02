@@ -12,7 +12,7 @@ const app = express();
 
 // connect DB
 mongoose
-  .connect('mongodb://127.0.0.1:27017/photo-share-app-db', {
+  .connect(`mongodb+srv://${process.env.USER_ID}:${process.env.USER_KEY}@cluster0.uztpwg5.mongodb.net/?retryWrites=true&w=majority`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -45,7 +45,7 @@ app.get('/about', pageController.getAboutPage);
 app.get('/add', pageController.getAddPage);
 app.get('/photos/edit/:id', pageController.getEditPage);
 
-const port = 3000;
+const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
   console.log(`server running on port ${port}`);
