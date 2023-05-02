@@ -29,7 +29,11 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true })); // url'deki datayı okuma
 app.use(express.json()); // url'deki datayı json çevirme
 app.use(fileUpload()); // express-fileupload
-app.use(methodOverride('_method'));
+app.use(
+  methodOverride('_method', {
+    methods: ['POST', 'GET'],
+  })
+);
 
 // ROUTE
 app.get('/', async (req, res) => {
@@ -86,7 +90,7 @@ app.post('/photos', async (req, res) => {
   res.redirect('/');
 });
 
-// edit sayfasına yönlendirme 
+// edit sayfasına yönlendirme
 app.get('/photos/edit/:id', async (req, res) => {
   const photo = await Photo.findOne({ _id: req.params.id });
   res.render('edit', {
@@ -101,7 +105,16 @@ app.put('/photos/:id', async (req, res) => {
   photo.description = req.body.description;
   photo.save();
 
-  res.redirect(`/photos/${req.params.id}`)
+  res.redirect(`/photos/${req.params.id}`);
+});
+
+app.delete('/photos/:id', async (req, res) => {
+  // console.log(req.params.id);
+  const photo = await Photo.findOne({ _id: req.params.id });
+  let deletedImage = __dirname + '/public' + photo.image;
+  fs.unlinkSync(deletedImage);
+  await Photo.findOneAndRemove(req.params.id);
+  res.redirect('/');
 });
 
 const port = 3000;
